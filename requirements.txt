@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────
+# Aura AI Companion Device — Python Dependencies
+# Python 3.10+ recommended
+# ─────────────────────────────────────────────
+
+# ── Core Vision & Computer Vision ────────────
+opencv-python>=4.9.0
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# ── Human & Object Detection ─────────────────
+ultralytics>=8.1.0          # YOLOv8
+
+# ── Face Recognition ─────────────────────────
+insightface>=0.7.3
+onnxruntime>=1.17.0         # CPU inference backend
+scikit-learn>=1.3.0         # cosine_similarity
+
+# ── Emotion Detection ────────────────────────
+deepface>=0.0.89
+tf-keras>=2.15.0            # DeepFace backend
+
+# ── Gesture & Pose ───────────────────────────
+mediapipe>=0.10.9
+
+# ── Vision-Language Model (VLM) ──────────────
+transformers>=4.40.0
+accelerate>=0.29.0
+torch>=2.2.0
+torchvision>=0.17.0
+sentencepiece>=0.2.0        # Tokenizer for Qwen-VL
+
+# ── LLM Agent (local via Ollama HTTP API) ────
+httpx>=0.27.0               # Async HTTP for Ollama
+anthropic>=0.25.0           # Claude API (optional backend)
+
+# ── Text-to-Speech ───────────────────────────
+pyttsx3>=2.90               # Lightweight offline TTS
+TTS>=0.22.0                 # Coqui TTS (higher quality)
+
+# ── Audio ────────────────────────────────────
+pygame>=2.5.0               # Audio playback & display
+pyaudio>=0.2.14             # Microphone input (future)
+
+# ── Hardware / Serial ────────────────────────
+pyserial>=3.5               # ESP32 / Arduino bridge
+
+# ── Database & Storage ───────────────────────
+sqlalchemy>=2.0.0           # ORM for session/profile DB
+alembic>=1.13.0             # DB migrations
+
+# ── Vector Memory (long-term episodic) ───────
+chromadb>=0.4.24            # Local vector store
+sentence-transformers>=2.6.0
+
+# ── Configuration ────────────────────────────
+pydantic>=2.6.0             # Config validation
+pydantic-settings>=2.2.0
+python-dotenv>=1.0.0
+PyYAML>=6.0.1
+
+# ── Scheduling & Concurrency ─────────────────
+schedule>=1.2.0
+apscheduler>=3.10.4
+
+# ── Logging & Monitoring ─────────────────────
+loguru>=0.7.2
+rich>=13.7.0                # Pretty console output
+
+# ── Utilities ────────────────────────────────
+python-dateutil>=2.9.0
+psutil>=5.9.0               # System resource monitoring
+click>=8.1.7                # CLI entrypoints
+
+# ── Testing ──────────────────────────────────
+pytest>=8.1.0
+pytest-asyncio>=0.23.0
+pytest-mock>=3.14.0
+pytest-cov>=5.0.0

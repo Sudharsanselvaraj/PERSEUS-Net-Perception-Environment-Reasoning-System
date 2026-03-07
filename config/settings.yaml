@@ -1,0 +1,135 @@
+# ─────────────────────────────────────────────────────────────
+# Aura AI Companion — Master Configuration
+# Override any value using environment variables or .env file
+# ─────────────────────────────────────────────────────────────
+
+app:
+  name: "Aura"
+  version: "1.0.0"
+  debug: false
+  log_level: "INFO"            # DEBUG | INFO | WARNING | ERROR
+  log_dir: "data/logs"
+  timezone: "UTC"
+
+# ── Camera ────────────────────────────────────────────────────
+camera:
+  device_id: 0
+  width: 1280
+  height: 720
+  fps: 30
+  backend: "v4l2"              # v4l2 | dshow (Windows) | avfoundation (macOS)
+  buffer_size: 1
+  codec: "MJPG"
+
+# ── Frame Processing ──────────────────────────────────────────
+frame:
+  target_width: 640
+  target_height: 480
+  blur_threshold: 80.0
+  min_brightness: 20
+  max_brightness: 240
+  apply_clahe: true
+  clahe_clip_limit: 2.0
+  clahe_tile_size: 8
+
+# ── Human Detection (YOLOv8) ──────────────────────────────────
+detection:
+  model_path: "yolov8n.pt"     # yolov8n | yolov8s | yolov8m
+  confidence_threshold: 0.45
+  device: "cpu"                # cpu | cuda | mps
+  half_precision: false        # FP16 — enable on CUDA only
+  close_area_threshold: 100000
+
+# ── Face Recognition (InsightFace) ────────────────────────────
+recognition:
+  model_name: "buffalo_sc"     # buffalo_sc (fast) | buffalo_l (accurate)
+  det_size: [320, 320]
+  ctx_id: -1                   # -1=CPU, 0=GPU
+  recognition_threshold: 0.45
+  database_path: "data/face_db/face_db.pkl"
+
+# ── Emotion Detection (DeepFace) ──────────────────────────────
+emotion:
+  backend: "opencv"            # opencv | ssd | mtcnn | retinaface
+  enforce_detection: false
+  smoothing_window_frames: 10  # Temporal smoothing over N frames
+
+# ── Gesture Recognition (MediaPipe) ───────────────────────────
+gesture:
+  max_num_hands: 2
+  min_detection_confidence: 0.6
+  min_tracking_confidence: 0.5
+  pose_model_complexity: 1     # 0=lite | 1=full | 2=heavy
+  wave_window_frames: 15
+  wave_direction_threshold: 0.02
+
+# ── Object Detection ──────────────────────────────────────────
+objects:
+  model_path: "yolov8s.pt"
+  confidence_threshold: 0.40
+  device: "cpu"
+
+# ── Scene Understanding (VLM) ─────────────────────────────────
+scene:
+  enabled: true
+  model_name: "Qwen/Qwen-VL-Chat"   # or "llava-hf/llava-1.5-7b-hf"
+  device: "auto"
+  max_new_tokens: 256
+  interval_seconds: 10.0             # How often to run VLM
+  use_quantization: true             # 4-bit quant for edge devices
+
+# ── Memory System ─────────────────────────────────────────────
+memory:
+  short_term_window_seconds: 30.0
+  session_db_path: "data/sessions/sessions.db"
+  profile_db_path: "data/profiles/profiles.db"
+  vector_db_path: "data/memory_vectors"
+  embedding_model: "all-MiniLM-L6-v2"
+  max_episodic_memories: 500
+
+# ── Processing Tiers ──────────────────────────────────────────
+pipeline:
+  tier2_interval_seconds: 3.0
+  tier3_interval_seconds: 10.0
+  max_worker_threads: 4
+  frame_drop_threshold: 5        # Skip processing after N consecutive drops
+
+# ── Agent (Aura LLM) ──────────────────────────────────────────
+agent:
+  backend: "ollama"              # ollama | anthropic | openai
+  ollama_base_url: "http://localhost:11434"
+  ollama_model: "llama3.1:8b"
+  anthropic_model: "claude-haiku-4-5-20251001"
+  openai_model: "gpt-4o-mini"
+  max_tokens: 512
+  temperature: 0.7
+  timeout_seconds: 10.0
+
+# ── Cooldown Rules (seconds) ──────────────────────────────────
+cooldowns:
+  greet: 300
+  reminder: 600
+  comment: 180
+  question: 300
+  reaction: 30
+  silence: 0
+
+# ── Behavior Output ───────────────────────────────────────────
+behavior:
+  tts_engine: "pyttsx3"         # pyttsx3 | coqui
+  tts_rate: 175
+  tts_volume: 0.9
+  coqui_model: "tts_models/en/ljspeech/tacotron2-DDC"
+  display_enabled: false
+  display_width: 480
+  display_height: 320
+
+# ── Hardware / Microcontroller ────────────────────────────────
+hardware:
+  serial_enabled: false
+  serial_port: "/dev/ttyUSB0"   # COM3 on Windows
+  serial_baud: 115200
+  led_count: 24
+  servo_enabled: false
+  head_yaw_neutral: 90
+  head_pitch_neutral: 75
