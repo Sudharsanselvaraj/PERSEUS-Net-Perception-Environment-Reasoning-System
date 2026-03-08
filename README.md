@@ -1,286 +1,277 @@
-# 🤖 Aura — AI Companion Device
+# PERSEUS-Net
+### Perception · Environment · Reasoning · Understanding · System
 
-> A real-time, vision-driven AI companion that observes, understands, and responds to the user's presence, emotion, gestures, and environment. Built with a modular, tiered perception pipeline and multi-backend LLM support.
+> A real-time, modular AI perception system that fuses computer vision, temporal memory, and LLM-based reasoning to understand human presence, activity, emotion, and context — built for edge-deployable companion intelligence.
+
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)](https://python.org)
+[![YOLOv8](https://img.shields.io/badge/Detection-YOLOv8-purple?style=flat-square)](https://ultralytics.com)
+[![InsightFace](https://img.shields.io/badge/Recognition-InsightFace-orange?style=flat-square)](https://insightface.ai)
+[![MediaPipe](https://img.shields.io/badge/Gesture-MediaPipe-green?style=flat-square)](https://mediapipe.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [System Components](#system-components)
+- [What is PERSEUS-Net](#what-is-perseus-net)
+- [System Architecture](#system-architecture)
+- [Pipeline Tiers](#pipeline-tiers)
+- [Module Reference](#module-reference)
 - [AI Models](#ai-models)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Hardware Integration](#hardware-integration)
-- [Security & Privacy](#security--privacy)
+- [Security and Privacy](#security-and-privacy)
 - [Troubleshooting](#troubleshooting)
-- [License](#license)
+- [Development](#development)
 
 ---
 
-## Overview
+## What is PERSEUS-Net
 
-Aura is an intelligent companion device that uses computer vision and natural language processing to:
+PERSEUS-Net is an edge-deployable AI perception and reasoning system designed for human-aware companion intelligence. It continuously observes an environment through a camera, builds a structured understanding of the human user, and drives intelligent, context-aware responses through a multi-backend LLM agent.
 
-- **See** — Detect humans, recognize faces, analyze emotions, and understand gestures
-- **Understand** — Build contextual awareness of the user's activity, mood, and environment
-- **Remember** — Maintain short-term and session-based memory of interactions
-- **Personalize** — Learn user preferences and adapt behavior over time
-- **Respond** — Generate contextual speech, LED animations, and physical movements
+The system name reflects its core capability stack:
 
-### Key Features
+| Letter | Meaning | System Layer |
+|--------|---------|-------------|
+| **P** | Perception | Vision pipeline — detection, recognition, emotion, gesture |
+| **E** | Environment | Scene understanding — objects, lighting, spatial context |
+| **R** | Reasoning | LLM agent — decision making, action selection |
+| **S** | Understanding | Context engine — synthesizes all signals into meaning |
+| **E** | Episodic | Memory system — temporal buffer, session log, profiles |
+| **U** | User-aware | Personalization — preference learning, behavior adaptation |
+| **S** | System | Hardware abstraction — TTS, LEDs, serial bridge |
 
-- 🎯 **Multi-Tier Perception Pipeline** — Optimized real-time processing (30 FPS Tier 1, async Tier 2/3)
-- 👤 **Face Recognition** — Enroll and recognize multiple users with confidence scoring
-- 😊 **Emotion Detection** — Real-time analysis of 7 emotional states with temporal smoothing
-- 👋 **Gesture Recognition** — Wave detection, hand gestures, and body orientation tracking
-- 🧠 **Contextual AI Agent** — LLM-powered decision making with cooldown management
-- 🔊 **Text-to-Speech** — Multiple TTS backends with tone-adaptive speech rates
-- 💡 **NeoPixel LED Control** — Color-coded emotional responses and animations
-- 🔧 **Modular Hardware Support** — ESP32/Arduino integration for servos and displays
+### Core Capabilities
+
+- **Tiered Real-Time Vision Pipeline** — Tier 1 at 30 FPS (detection/gesture), Tier 2 async every 3s (face/emotion/objects), Tier 3 async every 10s (VLM scene analysis)
+- **Multi-User Face Recognition** — ArcFace embeddings with cosine similarity matching and on-disk enrollment database
+- **Temporal Emotion Tracking** — 7-class emotion detection with rolling smoothing buffer and valence/trend analysis
+- **Gesture Intelligence** — MediaPipe-based hand gesture classification + waving detection via oscillation tracking
+- **Contextual Object Awareness** — COCO-class object detection with activity inference rules
+- **LLM Agent (Aura)** — Multi-backend reasoning agent with structured JSON output, cooldown enforcement, and tone-adaptive responses
+- **Personalization Engine** — Preference learning via exponential moving average updates from interaction feedback
+- **Hardware Output Layer** — TTS, NeoPixel LED ring, ESP32/Arduino serial bridge for servo and display control
 
 ---
 
-## Architecture
-
-### System Architecture Diagram
+## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              AURA AI COMPANION                              │
-│                         ┌─────────────────────┐                             │
-│                         │   PERCEPTION LAYER  │                             │
-│                         │   (Vision Pipeline) │                             │
-└─────────────────────────┴─────────────────────┴─────────────────────────────┘
-                                      │
-       ┌──────────────────────────────┼──────────────────────────────┐
-       │                              │                              │
-       ▼                              ▼                              ▼
-┌──────────────┐           ┌──────────────────┐           ┌──────────────────┐
-│   TIER 1     │           │     TIER 2       │           │     TIER 3       │
-│ (Real-time)  │           │  (Every ~3s)     │           │ (Every ~10s)     │
-│  30 FPS      │           │  Async Thread    │           │  Async Thread    │
-├──────────────┤           ├──────────────────┤           ├──────────────────┤
-│ • Human      │           │ • Face           │           │ • VLM Scene      │
-│   Detection  │           │   Recognition    │           │   Analysis       │
-│   (YOLOv8)   │           │   (InsightFace)  │           │   (Qwen-VL/      │
-│ • Gesture    │           │ • Emotion        │           │    LLaVA)        │
-│   Tracking   │           │   Detection      │           │                  │
-│   (MediaPipe)│           │   (DeepFace)     │           │ • Context Build  │
-└──────────────┘           │ • Object         │           │ • Agent Decision │
-       │                   │   Detection      │           └──────────────────┘
-       │                   │   (YOLOv8)       │                   │
-       │                   └──────────────────┘                   │
-       │                            │                             │
-       └────────────────────────────┼─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │      MEMORY SYSTEM          │
-                    ├─────────────────────────────┤
-                    │ • Temporal Buffer (30s)     │
-                    │ • Session Memory            │
-                    │ • User Profiles (JSON)      │
-                    │ • Episodic Memory (Chroma)  │
-                    └─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │     CONTEXT ENGINE          │
-                    ├─────────────────────────────┤
-                    │ Synthesizes perception      │
-                    │ outputs + memory into       │
-                    │ structured ContextObject    │
-                    └─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │   PERSONALIZATION ENGINE    │
-                    ├─────────────────────────────┤
-                    │ • User preference learning  │
-                    │ • Behavior instruction      │
-                    │   generation                │
-                    └─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │        AI AGENT             │
-                    ├─────────────────────────────┤
-                    │ Multi-backend LLM support:  │
-                    │ • Ollama (local)            │
-                    │ • Anthropic Claude          │
-                    │ • OpenAI GPT                │
-                    └─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │    BEHAVIOR EXECUTOR      │
-                    ├─────────────────────────────┤
-                    │ • TTS (pyttsx3/Coqui)       │
-                    │ • LED Controller            │
-                    │ • Animation Player          │
-                    └─────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │    HARDWARE INTERFACE       │
-                    ├─────────────────────────────┤
-                    │ • Serial Bridge (ESP32)   │
-                    │ • NeoPixel LED Ring         │
-                    │ • Servo Motors              │
-                    │ • OLED Display              │
-                    └─────────────────────────────┘
-```
+╔══════════════════════════════════════════════════════════════════════════╗
+║                         PERSEUS-Net SYSTEM                              ║
+╚══════════════════════════════════════════════════════════════════════════╝
 
-### Data Flow
-
-```
-Camera Frame → Frame Processor → PerceptionOrchestrator
-                                           │
-       ┌───────────────────────────────────┼───────────────────────────────────┐
-       │                                   │                                   │
-       ▼                                   ▼                                   ▼
-┌──────────────┐              ┌──────────────────────┐            ┌─────────────────┐
-│  Tier 1      │              │      Tier 2          │            │     Tier 3      │
-│ Synchronous  │              │  Async ThreadPool    │            │  Async Thread   │
-├──────────────┤              ├──────────────────────┤            ├─────────────────┤
-│ • Human      │              │ • Face Recognition   │            │ • VLM Scene     │
-│   Detection  │              │ • Emotion Analysis   │            │   Understanding │
-│ • Gesture    │              │ • Object Detection   │            │                 │
-│   Recognition│              └──────────────────────┘            └─────────────────┘
-└──────────────┘                          │                                   │
-       │                                  │                                   │
-       └──────────────────────────────────┼───────────────────────────────────┘
-                                          │
-                                          ▼
-                              ┌──────────────────────┐
-                              │  Temporal Memory     │
-                              │  Buffer (30s window) │
-                              └──────────────────────┘
-                                          │
-                                          ▼
-                              ┌──────────────────────┐
-                              │   Context Engine     │
-                              │  (build_context)     │
-                              └──────────────────────┘
-                                          │
-                                          ▼
-                              ┌──────────────────────┐
-                              │  Personalization     │
-                              │  Engine + Profile    │
-                              └──────────────────────┘
-                                          │
-                                          ▼
-                              ┌──────────────────────┐
-                              │    Aura Agent        │
-                              │   (LLM decision)     │
-                              └──────────────────────┘
-                                          │
-                                          ▼
-                              ┌──────────────────────┐
-                              │  Behavior Executor   │
-                              │ • TTS • LEDs • Anim  │
-                              └──────────────────────┘
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │                        HARDWARE LAYER                                │
+  │   USB/CSI Camera  →  Edge Compute (CPU/GPU)  →  Output Peripherals  │
+  └────────────────────────────────┬─────────────────────────────────────┘
+                                   │ Raw BGR frames @ 30 FPS
+  ┌────────────────────────────────▼─────────────────────────────────────┐
+  │                      FRAME ACQUISITION                               │
+  │   CameraInputLayer (threaded, bounded queue)                         │
+  │   FrameProcessor   (CLAHE, resize, quality gating)                   │
+  └────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+          ┌────────────────────────┼─────────────────────────────┐
+          │                        │                             │
+          ▼  TIER 1 (sync/frame)   ▼  TIER 2 (async/3s)         ▼  TIER 3 (async/10s)
+  ┌───────────────┐       ┌────────────────────┐       ┌──────────────────────┐
+  │ YOLOv8-nano   │       │ InsightFace ArcFace│       │ Qwen-VL / LLaVA      │
+  │ Human Detect  │       │ Face Recognition   │       │ VLM Scene Analysis   │
+  │               │       ├────────────────────┤       └──────────────────────┘
+  │ MediaPipe     │       │ DeepFace CNN       │
+  │ Gesture+Pose  │       │ Emotion Detection  │
+  └───────┬───────┘       ├────────────────────┤
+          │               │ YOLOv8-small        │
+          │               │ Object Detection    │
+          │               └────────┬───────────┘
+          │                        │
+          └────────────────────────┼──────────────────────────────┐
+                                   │                              │
+  ┌────────────────────────────────▼─────────────────────────────▼──────┐
+  │                     PERCEPTION ORCHESTRATOR                         │
+  │   ThreadPoolExecutor — schedules tiers, manages shared state        │
+  └────────────────────────────────┬────────────────────────────────────┘
+                                   │ PerceptionState
+  ┌────────────────────────────────▼────────────────────────────────────┐
+  │                      MEMORY SYSTEM                                  │
+  │   TemporalMemoryBuffer  — rolling 30s snapshots, trend analysis     │
+  │   SessionMemory         — per-session activity/emotion/interaction  │
+  │   ProfileStore          — persistent JSON user profiles             │
+  └────────────────────────────────┬────────────────────────────────────┘
+                                   │ BufferSummary + SessionMemory
+  ┌────────────────────────────────▼────────────────────────────────────┐
+  │                      CONTEXT ENGINE                                 │
+  │   Synthesizes perception + memory → structured ContextObject        │
+  │   Fields: user_id, emotion, emotion_trend, activity, gesture,       │
+  │           detected_objects, scene_description, event, time_of_day   │
+  └────────────────────────────────┬────────────────────────────────────┘
+                                   │ ContextObject
+  ┌────────────────────────────────▼────────────────────────────────────┐
+  │                  PERSONALIZATION ENGINE                             │
+  │   UserProfile lookup → behavior instructions for LLM prompt        │
+  │   Preference learning via EMA on interaction outcome feedback       │
+  └────────────────────────────────┬────────────────────────────────────┘
+                                   │ ContextObject + BehaviorInstructions
+  ┌────────────────────────────────▼────────────────────────────────────┐
+  │                        AURA AGENT                                   │
+  │   LLM backend: Ollama | Anthropic Claude | OpenAI GPT              │
+  │   Structured JSON output → AgentAction                              │
+  │   Cooldown enforcement per action type                              │
+  └────────────────────────────────┬────────────────────────────────────┘
+                                   │ AgentAction
+  ┌────────────────────────────────▼────────────────────────────────────┐
+  │                    BEHAVIOR EXECUTOR                                │
+  │   TTS (pyttsx3 / Coqui)  →  Speech output                         │
+  │   LEDController           →  NeoPixel ring color/animation         │
+  │   MicrocontrollerBridge   →  Serial JSON to ESP32/Arduino          │
+  └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## System Components
+## Pipeline Tiers
 
-### 1. Perception Layer (`/perception`)
+PERSEUS-Net uses a three-tier asynchronous processing architecture to balance real-time responsiveness with computational cost:
 
-| Component | Technology | Frequency | Purpose |
-|-----------|------------|-----------|---------|
-| **Camera** | OpenCV (V4L2/DShow) | 30 FPS | Frame acquisition & preprocessing |
-| **Human Detection** | YOLOv8 (Nano/Small) | Every frame | Person detection & presence gating |
-| **Face Recognition** | InsightFace (ArcFace) | Every 3s | Identity verification & enrollment |
-| **Emotion Detection** | DeepFace (FER+) | Every 3s | 7-class emotion analysis with smoothing |
-| **Gesture Recognition** | MediaPipe Hands+Pose | Every frame | Hand gestures, waving, body orientation |
-| **Object Detection** | YOLOv8 | Every 3s | Contextual object awareness |
-| **Scene Analysis** | Qwen-VL / LLaVA | Every 10s | High-level scene understanding (optional) |
+### Tier 1 — Synchronous (Every Frame, ~30 FPS)
 
-### 2. Memory System (`/memory`)
+| Module | Model | Latency Target |
+|--------|-------|---------------|
+| Human Detection | YOLOv8-nano | < 20ms CPU / < 5ms GPU |
+| Gesture + Pose | MediaPipe Hands + Pose | < 10ms CPU |
+| Frame Quality Gate | OpenCV Laplacian/CLAHE | < 2ms |
 
-| Component | Storage | Purpose |
-|-----------|---------|---------|
-| **Temporal Buffer** | In-memory (deque) | Rolling 30-second perception snapshots |
-| **Session Memory** | In-memory + SQLite | Per-session activity, emotion, interaction logs |
-| **User Profiles** | JSON files | Persistent user preferences & behavior patterns |
-| **Episodic Memory** | ChromaDB | Long-term vector memory (future extension) |
+Tier 1 runs in the **main loop thread**. All downstream tiers are skipped if no human is detected.
 
-### 3. Context Engine (`/context`)
+### Tier 2 — Asynchronous (Every ~3 Seconds)
 
-Synthesizes all perception outputs into a structured `ContextObject` containing:
-- User identity & confidence
-- Emotional state & trends
-- Activity classification
-- Gesture & body orientation
-- Detected objects & scene description
-- Temporal context (time of day, session duration)
-- Event classification (new user, waving, extended session, etc.)
+| Module | Model | Latency Target |
+|--------|-------|---------------|
+| Face Recognition | InsightFace buffalo_sc / buffalo_l | < 200ms CPU |
+| Emotion Detection | DeepFace (FER+/AffectNet backend) | < 500ms CPU |
+| Object Detection | YOLOv8-small | < 100ms CPU |
 
-### 4. Personalization Engine (`/personalization`)
+Tier 2 runs in a **ThreadPoolExecutor worker**. Results are written to shared state protected by a threading lock and read by the main loop asynchronously.
 
-- **User Profiles**: JSON-based storage of preferences
-- **Preference Learning**: Exponential moving average updates from feedback
-- **Behavior Instructions**: Dynamic prompt generation for the LLM agent
+### Tier 3 — Asynchronous (Every ~10 Seconds / Event-Driven)
 
-### 5. AI Agent (`/agent`)
+| Module | Model | Latency Target |
+|--------|-------|---------------|
+| VLM Scene Analysis | Qwen-VL-Chat / LLaVA-1.5 / MiniCPM-V | 500ms – 3s |
+| Context Engine Build | Pure Python synthesis | < 10ms |
+| Agent LLM Decision | Ollama / Claude / GPT | 200ms – 2s |
 
-Multi-backend LLM agent supporting:
-- **Ollama** (default) — Local inference with llama3.1:8b
-- **Anthropic Claude** — Cloud API with claude-haiku-4-5-20251001
-- **OpenAI GPT** — Cloud API with gpt-4o-mini
+Tier 3 triggers a **full context build and agent decision** via callback (`on_tier3_complete`). This is where Aura decides whether and how to respond.
 
-Features:
-- JSON-structured responses
-- Action cooldown management
-- Tone-aware response generation
-- Conversation history tracking
+---
 
-### 6. Behavior Execution (`/behavior`)
+## Module Reference
 
-| Component | Backends | Features |
-|-----------|----------|----------|
-| **TTS Engine** | pyttsx3, Coqui TTS | Tone-adaptive speech rates, async playback |
-| **LED Controller** | NeoPixel via Serial | Color-coded emotions, pulse animations |
-| **Executor** | — | Urgency-based scheduling, action coordination |
+### Repository Structure
 
-### 7. Hardware Interface (`/hardware`)
-
-- **Microcontroller Bridge**: Serial JSON protocol to ESP32/Arduino
-- **Servo Control**: Head movement (yaw/pitch)
-- **Display Output**: Text/emoji display on OLED
+```
+PERSEUS-Net/
+│
+├── main.py                              ← System entry point, full pipeline wiring
+│
+├── config/
+│   ├── config.py                        ← Pydantic v2 typed settings loader
+│   └── settings.yaml                    ← Master configuration (all defaults)
+│
+├── perception/
+│   ├── orchestrator.py                  ← Tiered async pipeline coordinator
+│   ├── camera/
+│   │   ├── capture.py                   ← Thread-safe camera acquisition (bounded queue)
+│   │   └── processor.py                 ← CLAHE enhancement, resize, quality gating
+│   ├── detection/
+│   │   └── human_detector.py            ← YOLOv8 person detection + spatial metadata
+│   ├── recognition/
+│   │   └── face_recognizer.py           ← InsightFace ArcFace + cosine similarity DB
+│   ├── emotion/
+│   │   └── emotion_detector.py          ← DeepFace emotion + temporal smoothing
+│   ├── gesture/
+│   │   └── gesture_recognizer.py        ← MediaPipe Hands + Pose + waving detection
+│   ├── objects/
+│   │   └── object_detector.py           ← COCO-class detection + activity inference
+│   └── scene/
+│       └── vlm_analyzer.py              ← VLM scene understanding (Qwen-VL/LLaVA)
+│
+├── memory/
+│   ├── temporal_buffer.py               ← Rolling 30s PerceptionSnapshot buffer
+│   └── session_memory.py                ← Per-session activity/emotion/interaction log
+│
+├── context/
+│   └── context_engine.py                ← Perception → ContextObject synthesis
+│
+├── personalization/
+│   ├── user_profile.py                  ← UserProfile dataclass + JSON persistence
+│   └── personalization_engine.py        ← EMA preference learning + prompt generation
+│
+├── agent/
+│   └── aura_agent.py                    ← LLM agent (Ollama/Anthropic/OpenAI backends)
+│
+├── behavior/
+│   ├── executor.py                      ← Action execution coordinator
+│   ├── tts/
+│   │   └── tts_engine.py                ← pyttsx3 + Coqui TTS with tone-adaptive rate
+│   └── leds/
+│       └── led_controller.py            ← NeoPixel LED ring control + pulse animations
+│
+├── hardware/
+│   └── microcontroller.py               ← JSON serial protocol bridge to ESP32/Arduino
+│
+├── scripts/
+│   ├── enroll.py                        ← Interactive face enrollment CLI
+│   ├── list_users.py                    ← Show enrolled user profiles
+│   └── test_camera.py                   ← Camera diagnostic with live quality metrics
+│
+├── tests/
+│   ├── unit/
+│   │   ├── test_temporal_buffer.py
+│   │   ├── test_context_engine.py
+│   │   └── test_agent.py
+│   └── integration/
+│
+└── data/                                ← Runtime data (gitignored)
+    ├── face_db/face_db.pkl              ← ArcFace embedding database
+    ├── profiles/*.json                  ← Per-user preference profiles
+    ├── sessions/sessions.db             ← SQLite session log
+    └── logs/                            ← Rotating daily logs
+```
 
 ---
 
 ## AI Models
 
-### Computer Vision Models
+### Vision Models
 
-| Model | Provider | Purpose | Size | Device |
-|-------|----------|---------|------|--------|
-| **YOLOv8n/s** | Ultralytics | Human/Object detection | ~6MB / 22MB | CPU/CUDA |
-| **buffalo_sc/l** | InsightFace | Face detection & recognition | ~100MB | CPU/GPU |
-| **DeepFace** | serengil | Emotion recognition | ~100MB | CPU |
-| **MediaPipe** | Google | Hand & pose landmarks | Built-in | CPU |
+| Model | Variant | Purpose | Input | Output |
+|-------|---------|---------|-------|--------|
+| **YOLOv8** | nano (Tier 1), small (Tier 2) | Human + object detection | BGR frame | BBox, class, confidence |
+| **InsightFace** | buffalo_sc / buffalo_l | Face detection + ArcFace embedding | BGR frame | 512-dim embedding |
+| **DeepFace** | FER+ / AffectNet | 7-class emotion recognition | Face crop | Emotion scores dict |
+| **MediaPipe** | Hands + Pose | 21-point hand landmarks, 33-point body pose | RGB frame | Normalized 3D landmarks |
 
 ### Language Models
 
-| Backend | Model | Context | Best For |
-|---------|-------|---------|----------|
-| **Ollama** | llama3.1:8b | 128K | Privacy-first, offline operation |
-| **Anthropic** | claude-haiku-4-5-20251001 | 200K | Speed & quality balance |
-| **OpenAI** | gpt-4o-mini | 128K | High-quality responses |
+| Backend | Model | Parameters | Context | Privacy |
+|---------|-------|-----------|---------|---------|
+| **Ollama** | llama3.1:8b | 8B | 128K | 100% local |
+| **Ollama** | llama3.2:3b | 3B | 128K | 100% local (low RAM) |
+| **Anthropic** | claude-haiku-4-5-20251001 | — | 200K | Cloud (text only) |
+| **OpenAI** | gpt-4o-mini | — | 128K | Cloud (text only) |
 
-### Vision-Language Models (Optional)
+### Vision-Language Models (Tier 3, Optional)
 
-| Model | Provider | Purpose |
-|-------|----------|---------|
-| **Qwen-VL-Chat** | Alibaba | Scene understanding |
-| **LLaVA-1.5** | Haotian Liu | Visual question answering |
+| Model | Parameters | Quantization | RAM Required |
+|-------|-----------|-------------|-------------|
+| Qwen-VL-Chat | 7B | 4-bit (BnB) | ~6 GB |
+| LLaVA-1.5-7B | 7B | 4-bit (BnB) | ~6 GB |
+| MiniCPM-V-2 | 2B | None | ~4 GB |
 
 ---
 
@@ -288,20 +279,20 @@ Features:
 
 ### Prerequisites
 
-- Python 3.10+
-- CUDA 11.8+ (optional, for GPU acceleration)
-- Ollama (for local LLM)
-- USB Camera (UVC compatible)
-- (Optional) ESP32 or Arduino for hardware features
+- Python 3.10 or higher
+- pip 23.0+
+- USB or CSI camera (UVC compatible)
+- Ollama (for local LLM) — download from [ollama.com](https://ollama.com)
+- CUDA 11.8+ optional for GPU acceleration
 
-### Step 1: Clone Repository
+### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/aura-companion.git
-cd aura-companion
+git clone https://github.com/Sudharsanselvaraj/PERSEUS-Net-Perception-Environment-Reasoning-System.git
+cd PERSEUS-Net-Perception-Environment-Reasoning-System
 ```
 
-### Step 2: Create Virtual Environment
+### Step 2 — Create Virtual Environment
 
 ```bash
 python -m venv .venv
@@ -309,248 +300,223 @@ python -m venv .venv
 # Windows
 .venv\Scripts\activate
 
-# macOS/Linux
+# macOS / Linux
 source .venv/bin/activate
 ```
 
-### Step 3: Install Dependencies
+### Step 3 — Install Dependencies (Tiered)
+
+Install in tiers to avoid long waits and dependency conflicts:
+
+```bash
+# Tier 1 — Core vision (fast, ~2 min)
+pip install opencv-python numpy Pillow ultralytics mediapipe
+pip install pydantic pydantic-settings python-dotenv PyYAML
+pip install loguru rich click pyserial httpx
+
+# Tier 2 — Face and emotion (~5 min)
+pip install insightface onnxruntime scikit-learn
+pip install deepface tf-keras
+
+# Tier 3 — LLM agent (choose one)
+pip install httpx                    # Ollama (no extra install)
+pip install anthropic                # Claude API
+pip install openai                   # OpenAI API
+
+# Tier 4 — VLM scene analysis (optional, heavy ~10 min)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install transformers accelerate sentencepiece
+```
+
+Or install everything at once:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: Download AI Models
-
-The system will auto-download required models on first run, or you can pre-download:
-
-```bash
-# YOLOv8 models
-wget https://github.com/ultralytics/assets/releases/download/v8.0.0/yolov8n.pt
-wget https://github.com/ultralytics/assets/releases/download/v8.0.0/yolov8s.pt
-
-# InsightFace models (auto-downloaded on first use)
-# DeepFace models (auto-downloaded on first use)
-```
-
-### Step 5: Configure Environment
+### Step 4 — Configure Environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your settings:
+Edit `.env`:
 
-```bash
-# LLM Configuration
+```dotenv
 AURA_AGENT_BACKEND=ollama
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.1:8b
-
-# Optional: Cloud LLM APIs
-ANTHROPIC_API_KEY=your_key_here
-OPENAI_API_KEY=your_key_here
-
-# Camera
 CAMERA_DEVICE_ID=0
-
-# Hardware (optional)
+AURA_DEBUG=false
+AURA_LOG_LEVEL=INFO
 SERIAL_ENABLED=false
-SERIAL_PORT=/dev/ttyUSB0  # Linux/Mac
-# SERIAL_PORT=COM3        # Windows
 ```
 
-### Step 6: Setup Ollama (for local LLM)
+### Step 5 — Pull Ollama Model
 
 ```bash
-# Install Ollama from https://ollama.com
-
-# Pull the default model
-ollama pull llama3.1:8b
+ollama pull llama3.1:8b        # Standard (~4.7 GB)
+# or
+ollama pull llama3.2:3b        # Low RAM machines (~2 GB)
 ```
 
-### Step 7: Enroll First User
+### Step 6 — Enroll First User
 
 ```bash
 python scripts/enroll.py
 ```
-
-Follow prompts to capture face samples for recognition.
 
 ---
 
 ## Configuration
 
-### Main Configuration File
+All configuration is in `config/settings.yaml`. Environment variables in `.env` override YAML values at runtime.
 
-All settings are in `config/settings.yaml`:
+### Camera
 
 ```yaml
-# ── Camera ──────────────────────────────────────
 camera:
-  device_id: 0              # Camera index (0 for default)
-  width: 1280               # Capture resolution
+  device_id: 0          # Camera index (run test_camera.py to find correct ID)
+  width: 1280
   height: 720
-  fps: 30                   # Target FPS
-  backend: "dshow"          # "v4l2" (Linux), "dshow" (Windows), "avfoundation" (Mac)
+  fps: 30
+  backend: "dshow"      # dshow (Windows) | v4l2 (Linux) | avfoundation (macOS)
+```
 
-# ── Detection (YOLOv8) ────────────────────────
+### Detection
+
+```yaml
 detection:
-  model_path: "yolov8n.pt"  # Model variant (n/s/m/l)
+  model_path: "yolov8n.pt"       # n=fastest, s=balanced, m=accurate
   confidence_threshold: 0.45
-  device: "cpu"             # "cpu", "cuda", "mps"
+  device: "cpu"                  # cpu | cuda | mps
+```
 
-# ── Face Recognition ──────────────────────────
-recognition:
-  model_name: "buffalo_sc"  # "buffalo_sc" (fast) or "buffalo_l" (accurate)
-  recognition_threshold: 0.45
-  database_path: "data/face_db/face_db.pkl"
+### Agent
 
-# ── Emotion Detection ─────────────────────────
-emotion:
-  backend: "opencv"         # Face detector backend
-  smoothing_window_frames: 10
-
-# ── Gesture Recognition ──────────────────────
-gesture:
-  max_num_hands: 2
-  min_detection_confidence: 0.6
-  pose_model_complexity: 1  # 0=lite, 1=full, 2=heavy
-
-# ── AI Agent ──────────────────────────────────
+```yaml
 agent:
-  backend: "ollama"         # "ollama", "anthropic", "openai"
+  backend: "ollama"              # ollama | anthropic | openai
   ollama_model: "llama3.1:8b"
   anthropic_model: "claude-haiku-4-5-20251001"
   openai_model: "gpt-4o-mini"
-  temperature: 0.7
   max_tokens: 512
-
-# ── TTS ───────────────────────────────────────
-behavior:
-  tts_engine: "pyttsx3"     # "pyttsx3" or "coqui"
-  tts_rate: 175             # Speech rate (words/min)
-  tts_volume: 0.9
-
-# ── Hardware ──────────────────────────────────
-hardware:
-  serial_enabled: false
-  serial_port: "/dev/ttyUSB0"
-  serial_baud: 115200
-  led_count: 24
-  servo_enabled: false
+  temperature: 0.7
+  timeout_seconds: 30.0
 ```
 
-### Environment Variables
+### Cooldowns (seconds between repeated actions)
 
-Environment variables override YAML settings:
+```yaml
+cooldowns:
+  greet: 300        # 5 minutes
+  reminder: 600     # 10 minutes
+  comment: 180      # 3 minutes
+  question: 300     # 5 minutes
+  reaction: 30      # 30 seconds
+```
 
-| Variable | Description |
-|----------|-------------|
-| `AURA_AGENT_BACKEND` | LLM backend (ollama/anthropic/openai) |
-| `ANTHROPIC_API_KEY` | Claude API key |
-| `OPENAI_API_KEY` | OpenAI API key |
-| `OLLAMA_BASE_URL` | Ollama server URL |
-| `OLLAMA_MODEL` | Ollama model name |
-| `CAMERA_DEVICE_ID` | Camera device index |
-| `AURA_DEBUG` | Enable debug mode (true/false) |
-| `AURA_LOG_LEVEL` | Logging level (DEBUG/INFO/WARNING/ERROR) |
-| `SERIAL_PORT` | Serial port path |
-| `SERIAL_ENABLED` | Enable serial hardware (true/false) |
+### Performance Tuning
+
+```yaml
+pipeline:
+  tier2_interval_seconds: 3.0    # Increase to reduce CPU load
+  tier3_interval_seconds: 10.0
+  max_worker_threads: 4
+
+scene:
+  enabled: false                 # Disable VLM on low-end hardware
+```
 
 ---
 
 ## Usage
 
-### Running Aura
+### Running PERSEUS-Net
 
 ```bash
 # Standard run
 python main.py
 
-# With live video debug window
+# With live annotated video window
 python main.py --show-video
 
-# Disable VLM (faster startup)
+# Disable VLM for faster startup
 python main.py --no-vlm
 
-# Dry run (perception only, no TTS/LEDs)
+# Perception only — no TTS or LEDs (development mode)
 python main.py --dry-run
 
 # Custom config file
-python main.py --config my_settings.yaml
+python main.py --config my_config.yaml
 
-# Run enrollment wizard
+# Launch enrollment wizard
 python main.py --enroll
 ```
 
-### User Enrollment
+### Enrollment and User Management
 
 ```bash
 # Interactive enrollment
 python scripts/enroll.py
 
-# Command-line enrollment
-python scripts/enroll.py --user-id user_001 --name "Alex" --frames 15
+# Programmatic enrollment
+python scripts/enroll.py --user-id user_001 --name "Alex" --frames 12
 
-# List enrolled users
+# View enrolled users and profiles
 python scripts/list_users.py
 
-# Test camera
+# Camera diagnostic
 python scripts/test_camera.py
+python scripts/test_camera.py --device 1
 ```
 
-### Command Line Arguments
+### CLI Flags
 
-| Argument | Description |
-|----------|-------------|
-| `--config PATH` | Path to YAML config file |
-| `--enroll` | Run enrollment wizard |
-| `--no-vlm` | Disable VLM scene analysis |
-| `--show-video` | Show debug video window |
-| `--dry-run` | Skip TTS and LED output |
+| Flag | Description |
+|------|-------------|
+| `--config PATH` | Path to YAML config (default: config/settings.yaml) |
+| `--enroll` | Run interactive face enrollment wizard |
+| `--no-vlm` | Disable Tier 3 VLM scene analysis |
+| `--show-video` | Show live debug video with bounding boxes and labels |
+| `--dry-run` | Skip TTS and LED output (perception pipeline only) |
 
 ---
 
 ## Hardware Integration
 
-### Supported Hardware
+### Microcontroller Serial Protocol
 
-- **Microcontroller**: ESP32, Arduino Nano 33, or compatible
-- **LED Ring**: WS2812B NeoPixel (24 LEDs recommended)
-- **Servos**: 2x SG90 or MG90S for head movement
-- **Display**: SSD1306 128x64 OLED (optional)
-
-### Wiring Diagram
-
-```
-ESP32/Arduino
-│
-├── GPIO 6  ──► NeoPixel Data In (via 470Ω resistor)
-├── GPIO 9  ──► Servo 1 (Yaw - horizontal)
-├── GPIO 10 ──► Servo 2 (Pitch - vertical)
-├── TX/RX   ──► USB Serial to PC
-└── 5V/GND  ──► Power (separate supply recommended for LEDs)
-```
-
-### Firmware
-
-Flash the Arduino/ESP32 firmware located in `firmware/esp32_companion.ino` (if available) or create your own using the JSON protocol:
+PERSEUS-Net communicates with ESP32 or Arduino over USB serial using newline-delimited JSON commands:
 
 ```json
 {"cmd": "led_color", "r": 255, "g": 100, "b": 50}
 {"cmd": "servo_move", "yaw": 90, "pitch": 75}
+{"cmd": "play_animation", "name": "wave_back"}
 {"cmd": "display_text", "text": "Hello!", "color": "white"}
+{"cmd": "play_sound", "file": "chime.wav"}
+```
+
+### Wiring Reference
+
+```
+ESP32 / Arduino
+│
+├── GPIO 6   ──[470Ω]──► NeoPixel WS2812B Data In
+├── GPIO 9   ──────────► Servo 1 Signal (Yaw)
+├── GPIO 10  ──────────► Servo 2 Signal (Pitch)
+├── SDA/SCL  ──────────► SSD1306 OLED Display
+├── USB      ──────────► PC Serial Bridge
+└── 5V / GND ──────────► External power supply
 ```
 
 ### Enabling Hardware
 
-Edit `config/settings.yaml`:
-
 ```yaml
 hardware:
   serial_enabled: true
-  serial_port: "/dev/ttyUSB0"  # Linux/Mac
-  # serial_port: "COM3"        # Windows
+  serial_port: "COM3"        # Windows: COM3, COM4 etc.
+  # serial_port: "/dev/ttyUSB0"  # Linux
   serial_baud: 115200
   led_count: 24
   servo_enabled: true
@@ -558,164 +524,101 @@ hardware:
 
 ---
 
-## Security & Privacy
+## Security and Privacy
 
-### Data Storage
+### Data Locations
 
-| Data Type | Location | Encrypted |
-|-----------|----------|-----------|
-| Face embeddings | `data/face_db/face_db.pkl` | No |
-| User profiles | `data/profiles/*.json` | No |
-| Session logs | `data/sessions/sessions.db` | No |
-| Logs | `data/logs/*.log` | No |
+| Data | Path | Contains |
+|------|------|----------|
+| Face embeddings | `data/face_db/face_db.pkl` | ArcFace 512-dim vectors (not raw images) |
+| User profiles | `data/profiles/*.json` | Preferences, interaction stats |
+| Session logs | `data/sessions/sessions.db` | Activity and emotion history |
+| System logs | `data/logs/` | Timestamped pipeline logs |
 
-### Privacy Features
+### Privacy Architecture
 
-- ✅ **On-device processing** — All vision AI runs locally
-- ✅ **No cloud video transmission** — Camera data never leaves the device
-- ✅ **Local LLM option** — Use Ollama for fully offline operation
-- ✅ **Configurable cloud LLM** — Only text context sent when using Anthropic/OpenAI
+- All camera processing is **fully on-device** — no video is transmitted
+- When using Ollama backend, **no data ever leaves the machine**
+- When using Anthropic/OpenAI, only the **text context string** is sent — never images or biometric data
+- Face embeddings are mathematical vectors — raw face images are never stored
 
-### Security Recommendations
+### API Key Security
 
-1. **Physical Access Control**
-   - Keep the device in physically secure locations
-   - Prevent unauthorized access to stored face embeddings
-
-2. **API Key Management**
-   - Store API keys in `.env` file (never commit to git)
-   - Use environment-specific keys
-   - Rotate keys periodically
-
-3. **Face Database Protection**
-   ```bash
-   # Restrict access to face database (Linux/Mac)
-   chmod 600 data/face_db/face_db.pkl
-   ```
-
-4. **Network Security**
-   - If using Ollama remotely, ensure HTTPS/TLS
-   - Firewall the Ollama port (11434) from external access
-
-5. **Audit Logging**
-   - Enable debug logging to track access: `AURA_DEBUG=true`
-   - Review logs regularly: `tail -f data/logs/aura.log`
-
-### Data Retention
-
-- Face embeddings: Persistent until manually deleted
-- Session logs: Persistent (SQLite with rotation)
-- User profiles: Persistent until manually deleted
-- Logs: Rotated daily with configurable retention
-
----
-
-## Customization
-
-### Creating Custom Agent Behaviors
-
-Edit `config/settings.yaml` cooldowns:
-
-```yaml
-cooldowns:
-  greet: 300        # 5 minutes between greetings
-  reminder: 600   # 10 minutes between reminders
-  comment: 180    # 3 minutes between comments
-  question: 300   # 5 minutes between questions
-  reaction: 30    # 30 seconds between reactions
+```bash
+# Keys live only in .env — never committed to git
+echo ".env" >> .gitignore
+git rm --cached .env 2>/dev/null
 ```
-
-### Custom LED Animations
-
-Modify `behavior/leds/led_controller.py`:
-
-```python
-def my_custom_animation(self, color):
-    """Add your custom LED sequence."""
-    # Implementation here
-    pass
-```
-
-### Custom Prompts
-
-Edit the prompt template in `agent/aura_agent.py`:
-
-```python
-_PROMPT = """You are Aura, a helpful AI companion. ..."""
-```
-
-### Adding New Perception Modules
-
-1. Create module in `perception/<module>/`
-2. Implement `initialize()` and `process()` methods
-3. Register in `perception/orchestrator.py`
-4. Add configuration in `config/config.py`
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Camera Not Found
+### Camera Not Opening
 
 ```bash
-# List available cameras
-python -c "import cv2; print([cv2.VideoCapture(i).isOpened() for i in range(5)])"
-
-# Test camera
-python scripts/test_camera.py
+# Find available camera devices
+python -c "
+import cv2
+for i in range(5):
+    cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
+    print(f'Device {i}:', cap.isOpened())
+    cap.release()
+"
 ```
 
-#### CUDA/GPU Issues
+Set the correct `device_id` and `backend: "dshow"` (Windows) in `settings.yaml`.
 
-```yaml
-# In settings.yaml, force CPU mode:
-detection:
-  device: "cpu"
-recognition:
-  ctx_id: -1  # -1=CPU, 0=GPU
-```
-
-#### Ollama Connection Failed
+### MediaPipe Protobuf Conflict
 
 ```bash
-# Verify Ollama is running
-curl http://localhost:11434/api/tags
+pip uninstall mediapipe protobuf -y
+pip install protobuf==4.25.3
+pip install mediapipe==0.10.14
+```
 
+### Ollama Returns 500 Error
+
+```bash
 # Check model is downloaded
 ollama list
+
+# Restart Ollama service
+taskkill /F /IM ollama.exe    # Windows
+ollama serve
+
+# Switch to smaller model if low on RAM
+ollama pull llama3.2:3b
+# Update settings.yaml: ollama_model: "llama3.2:3b"
 ```
 
-#### Face Recognition Not Working
+### Agent Not Speaking (action_type error)
 
-1. Ensure user is enrolled: `python scripts/enroll.py`
-2. Check database exists: `ls data/face_db/`
-3. Verify recognition threshold: Adjust `recognition_threshold` in config
-
-#### Import Errors (MediaPipe)
+Verify `agent/aura_agent.py` contains `"format": "json"` in the Ollama request:
 
 ```bash
-# If MediaPipe 0.10+ causes issues
-pip install mediapipe==0.9.3.0
+# Windows
+findstr "format" agent\aura_agent.py
+
+# Should output: "format": "json",
 ```
 
-### Performance Optimization
+### Slow Performance
 
-| Issue | Solution |
-|-------|----------|
-| Low FPS | Disable VLM: `--no-vlm` or `scene.enabled: false` |
-| High CPU | Use YOLOv8n (nano) instead of YOLOv8s |
-| Slow responses | Switch to faster LLM (claude-haiku) |
-| Memory usage | Reduce `short_term_window_seconds` |
+| Symptom | Fix |
+|---------|-----|
+| Low FPS | Set `scene.enabled: false`, use `yolov8n.pt` |
+| High RAM | Use `llama3.2:3b`, set `use_quantization: true` |
+| Slow emotion | Set `emotion.backend: "opencv"` |
+| Agent timeout | Increase `agent.timeout_seconds: 30.0` |
 
-### Debug Mode
+### Enable Full Debug Logging
 
 ```bash
-# Enable verbose logging
-export AURA_DEBUG=true
-export AURA_LOG_LEVEL=DEBUG
-python main.py
+# Windows PowerShell
+$env:AURA_DEBUG="true"
+$env:AURA_LOG_LEVEL="DEBUG"
+python main.py --show-video
 ```
 
 ---
@@ -725,55 +628,27 @@ python main.py
 ### Running Tests
 
 ```bash
-# All tests
-pytest
-
-# Unit tests only
-pytest tests/unit/
-
-# With coverage
-pytest --cov=. --cov-report=html
+pytest                              # All tests
+pytest tests/unit/                  # Unit tests only
+pytest -k "test_agent"              # Specific module
+pytest --cov=. --cov-report=html    # With HTML coverage report
 ```
 
-### Project Structure
+### Adding a New Perception Module
 
-```
-├── main.py                  # Application entry point
-├── config/                # Configuration management
-│   ├── config.py         # Pydantic settings
-│   └── settings.yaml     # Default configuration
-├── perception/            # Vision pipeline
-│   ├── orchestrator.py   # Tiered processing coordinator
-│   ├── camera/           # Capture & preprocessing
-│   ├── detection/        # Human detection
-│   ├── recognition/      # Face recognition
-│   ├── emotion/          # Emotion detection
-│   ├── gesture/          # Gesture recognition
-│   ├── objects/          # Object detection
-│   └── scene/            # VLM scene analysis
-├── memory/               # Memory systems
-│   ├── temporal_buffer.py
-│   └── session_memory.py
-├── context/              # Context synthesis
-│   └── context_engine.py
-├── personalization/      # User profiles & learning
-│   ├── user_profile.py
-│   └── personalization_engine.py
-├── agent/                # LLM agent
-│   └── aura_agent.py
-├── behavior/             # Output execution
-│   ├── executor.py
-│   ├── tts/
-│   └── leds/
-├── hardware/             # Serial communication
-│   └── microcontroller.py
-├── scripts/              # CLI utilities
-├── tests/                # Test suite
-└── data/                 # Runtime data (gitignored)
-    ├── face_db/
-    ├── profiles/
-    ├── sessions/
-    └── logs/
+1. Create `perception/<module>/<module>.py`
+2. Implement `initialize()` and a `process(frame)` method returning a typed dataclass
+3. Add config fields to `config/config.py` and `config/settings.yaml`
+4. Register in `perception/orchestrator.py` under the appropriate tier
+5. Include output in `context/context_engine.py` → `ContextObject`
+
+### Switching LLM Backend at Runtime
+
+```bash
+# No code changes needed — override via environment variable
+$env:AURA_AGENT_BACKEND="anthropic"
+$env:ANTHROPIC_API_KEY="sk-ant-..."
+python main.py
 ```
 
 ---
@@ -786,12 +661,13 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
-- [InsightFace](https://github.com/deepinsight/insightface)
-- [DeepFace](https://github.com/serengil/deepface)
-- [MediaPipe](https://mediapipe.dev/)
-- [Ollama](https://ollama.com/)
+- [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) — Object and human detection
+- [InsightFace](https://github.com/deepinsight/insightface) — ArcFace face recognition
+- [DeepFace](https://github.com/serengil/deepface) — Emotion recognition pipeline
+- [MediaPipe](https://mediapipe.dev) — Hand and pose landmark detection
+- [Ollama](https://ollama.com) — Local LLM inference runtime
+- [Anthropic Claude](https://anthropic.com) — Cloud LLM backend
 
 ---
 
-**Built with ❤️ for AI companions everywhere**
+*PERSEUS-Net — Perception · Environment · Reasoning · Understanding · System*
