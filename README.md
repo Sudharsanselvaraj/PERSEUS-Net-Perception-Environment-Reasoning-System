@@ -61,12 +61,12 @@ The system name reflects its core capability stack:
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════╗
-║                         PERSEUS-Net SYSTEM                              ║
+║                         PERSEUS-Net SYSTEM                               ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 
   ┌──────────────────────────────────────────────────────────────────────┐
   │                        HARDWARE LAYER                                │
-  │   USB/CSI Camera  →  Edge Compute (CPU/GPU)  →  Output Peripherals  │
+  │   USB/CSI Camera  →  Edge Compute (CPU/GPU)  →  Output Peripherals   │
   └────────────────────────────────┬─────────────────────────────────────┘
                                    │ Raw BGR frames @ 30 FPS
   ┌────────────────────────────────▼─────────────────────────────────────┐
@@ -85,8 +85,8 @@ The system name reflects its core capability stack:
   │ MediaPipe     │       │ DeepFace CNN       │
   │ Gesture+Pose  │       │ Emotion Detection  │
   └───────┬───────┘       ├────────────────────┤
-          │               │ YOLOv8-small        │
-          │               │ Object Detection    │
+          │               │ YOLOv8-small       │
+          │               │ Object Detection   │
           │               └────────┬───────────┘
           │                        │
           └────────────────────────┼──────────────────────────────┐
@@ -112,22 +112,22 @@ The system name reflects its core capability stack:
                                    │ ContextObject
   ┌────────────────────────────────▼────────────────────────────────────┐
   │                  PERSONALIZATION ENGINE                             │
-  │   UserProfile lookup → behavior instructions for LLM prompt        │
+  │   UserProfile lookup → behavior instructions for LLM prompt         │
   │   Preference learning via EMA on interaction outcome feedback       │
   └────────────────────────────────┬────────────────────────────────────┘
                                    │ ContextObject + BehaviorInstructions
   ┌────────────────────────────────▼────────────────────────────────────┐
   │                        AURA AGENT                                   │
-  │   LLM backend: Ollama | Anthropic Claude | OpenAI GPT              │
+  │   LLM backend: Ollama | Anthropic Claude | OpenAI GPT               │
   │   Structured JSON output → AgentAction                              │
   │   Cooldown enforcement per action type                              │
   └────────────────────────────────┬────────────────────────────────────┘
                                    │ AgentAction
   ┌────────────────────────────────▼────────────────────────────────────┐
   │                    BEHAVIOR EXECUTOR                                │
-  │   TTS (pyttsx3 / Coqui)  →  Speech output                         │
-  │   LEDController           →  NeoPixel ring color/animation         │
-  │   MicrocontrollerBridge   →  Serial JSON to ESP32/Arduino          │
+  │   TTS (pyttsx3 / Coqui)  →  Speech output                           │
+  │   LEDController           →  NeoPixel ring color/animation          │
+  │   MicrocontrollerBridge   →  Serial JSON to ESP32/Arduino           │
   └─────────────────────────────────────────────────────────────────────┘
 ```
 
