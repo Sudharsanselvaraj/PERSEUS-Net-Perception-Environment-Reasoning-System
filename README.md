@@ -77,7 +77,7 @@ The system name reflects its core capability stack:
                                    │
           ┌────────────────────────┼─────────────────────────────┐
           │                        │                             │
-          ▼  TIER 1 (sync/frame)   ▼  TIER 2 (async/3s)         ▼  TIER 3 (async/10s)
+          ▼  TIER 1 (sync/frame)   ▼  TIER 2 (async/3s)          ▼  TIER 3 (async/10s)
   ┌───────────────┐       ┌────────────────────┐       ┌──────────────────────┐
   │ YOLOv8-nano   │       │ InsightFace ArcFace│       │ Qwen-VL / LLaVA      │
   │ Human Detect  │       │ Face Recognition   │       │ VLM Scene Analysis   │
@@ -91,7 +91,7 @@ The system name reflects its core capability stack:
           │                        │
           └────────────────────────┼──────────────────────────────┐
                                    │                              │
-  ┌────────────────────────────────▼─────────────────────────────▼──────┐
+  ┌────────────────────────────────▼───────────────────────────── ▼─────┐
   │                     PERCEPTION ORCHESTRATOR                         │
   │   ThreadPoolExecutor — schedules tiers, manages shared state        │
   └────────────────────────────────┬────────────────────────────────────┘
