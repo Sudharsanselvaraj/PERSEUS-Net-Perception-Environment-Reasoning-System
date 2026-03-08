@@ -205,7 +205,7 @@ def load_config(config_path: str = "config/settings.yaml") -> AuraConfig:
         # Return defaults if config file not found
         return AuraConfig().apply_env_overrides()
 
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
     config = AuraConfig(**raw)

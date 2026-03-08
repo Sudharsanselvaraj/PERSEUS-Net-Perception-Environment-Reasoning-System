@@ -146,21 +146,33 @@ class PerceptionOrchestrator:
 
     def _run_tier2(self, frame: np.ndarray, ts: float) -> None:
         try:
-            face_results = self.face_recognizer.recognize(frame)
+            face_results = None
+            emotion = None
+            objects = None
+
+            try:
+                face_results = self.face_recognizer.recognize(frame)
+            except Exception as fe:
+                logger.warning(f"Face recognition failed: {fe}")
 
             # Crop face region for emotion analysis
-            emotion = None
             if face_results:
-                x1, y1, x2, y2 = face_results[0].face_bbox
-                # Clamp to frame bounds
-                x1, y1 = max(0, x1), max(0, y1)
-                x2 = min(frame.shape[1], x2)
-                y2 = min(frame.shape[0], y2)
-                face_crop = frame[y1:y2, x1:x2]
-                if face_crop.size > 0:
-                    emotion = self.emotion_detector.detect_emotion(face_crop)
+                try:
+                    x1, y1, x2, y2 = face_results[0].face_bbox
+                    # Clamp to frame bounds
+                    x1, y1 = max(0, x1), max(0, y1)
+                    x2 = min(frame.shape[1], x2)
+                    y2 = min(frame.shape[0], y2)
+                    face_crop = frame[y1:y2, x1:x2]
+                    if face_crop.size > 0:
+                        emotion = self.emotion_detector.detect_emotion(face_crop)
+                except Exception as ee:
+                    logger.warning(f"Emotion detection failed: {ee}")
 
-            objects = self.object_detector.detect(frame)
+            try:
+                objects = self.object_detector.detect(frame)
+            except Exception as oe:
+                logger.warning(f"Object detection failed: {oe}")
 
             with self._lock:
                 self._state.face_results = face_results
@@ -168,8 +180,12 @@ class PerceptionOrchestrator:
                 self._state.objects = objects
                 self._state.last_tier2_ts = ts
 
+            logger.debug(f"Tier 2 complete: faces={len(face_results) if face_results else 0}, "
+                        f"emotion={emotion.dominant_emotion if emotion else None}, "
+                        f"objects={len(objects.detected_objects) if objects else 0}")
+
         except Exception as e:
-            logger.error(f"Tier 2 processing error: {e}")
+            logger.error(f"Tier 2 processing error: {e}", exc_info=True)
         finally:
             self._tier2_pending = False
 
@@ -181,12 +197,17 @@ class PerceptionOrchestrator:
                 self._state.scene = scene
                 self._state.last_tier3_ts = ts
 
+            logger.debug("Tier 3 scene analysis complete")
+
             # Trigger context engine + agent via callback
             if self.on_tier3_complete:
-                self.on_tier3_complete()
+                try:
+                    self.on_tier3_complete()
+                except Exception as cb_err:
+                    logger.error(f"Tier 3 callback error: {cb_err}", exc_info=True)
 
         except Exception as e:
-            logger.error(f"Tier 3 processing error: {e}")
+            logger.error(f"Tier 3 processing error: {e}", exc_info=True)
         finally:
             self._tier3_pending = False
 

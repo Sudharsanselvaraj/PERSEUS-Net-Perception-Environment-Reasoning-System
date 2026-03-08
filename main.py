@@ -298,40 +298,43 @@ class AuraSystem:
 
     def _on_tier3_complete(self) -> None:
         """Called from background thread after VLM analysis — build context + agent decision."""
-        c = self.c
-        state = self.orchestrator.get_state()
-        buffer_summary = c["short_term_buffer"].summarize()
+        try:
+            c = self.c
+            state = self.orchestrator.get_state()
+            buffer_summary = c["short_term_buffer"].summarize()
 
-        context = c["context_engine"].build_context(
-            face_results=state.face_results,
-            emotion=state.emotion,
-            gesture=state.gesture,
-            objects=state.objects,
-            scene=state.scene,
-            buffer_summary=buffer_summary,
-            session=c["session"],
-        )
-        self._last_context = context
-        logger.debug(f"Context built: event={context.event}, "
-                     f"emotion={context.emotion}, activity={context.activity}")
+            context = c["context_engine"].build_context(
+                face_results=state.face_results,
+                emotion=state.emotion,
+                gesture=state.gesture,
+                objects=state.objects,
+                scene=state.scene,
+                buffer_summary=buffer_summary,
+                session=c["session"],
+            )
+            self._last_context = context
+            logger.debug(f"Context built: event={context.event}, "
+                         f"emotion={context.emotion}, activity={context.activity}")
 
-        # Personalization
-        profile = c["personalization"].get_profile_for_context(context)
-        behavior_instructions = c["personalization"].get_behavior_instructions(
-            profile, context
-        )
+            # Personalization
+            profile = c["personalization"].get_profile_for_context(context)
+            behavior_instructions = c["personalization"].get_behavior_instructions(
+                profile, context
+            )
 
-        # Agent decision
-        action = c["agent"].decide(context, behavior_instructions)
-        logger.info(f"Agent action: {action.action_type} — {action.reasoning}")
+            # Agent decision
+            action = c["agent"].decide(context, behavior_instructions)
+            logger.info(f"Agent action: {action.action_type} — {action.reasoning}")
 
-        # Execute behavior
-        if c["executor"] and action.action_type != "silence":
-            c["executor"].execute(action)
-            if context.user_id:
-                c["session"].log_interaction(
-                    action.action_type, action.message or "", action.tone
-                )
+            # Execute behavior
+            if c["executor"] and action.action_type != "silence":
+                c["executor"].execute(action)
+                if context.user_id:
+                    c["session"].log_interaction(
+                        action.action_type, action.message or "", action.tone
+                    )
+        except Exception as e:
+            logger.error(f"Error in _on_tier3_complete: {e}", exc_info=True)
 
     def _render_debug_frame(self, frame: np.ndarray, state) -> None:
         """Draw bounding boxes and labels on frame for debugging."""

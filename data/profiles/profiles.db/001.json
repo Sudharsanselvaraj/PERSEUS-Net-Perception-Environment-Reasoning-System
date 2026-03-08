@@ -1,0 +1,26 @@
+{
+  "user_id": "001",
+  "display_name": "Sudharsan",
+  "enrolled_at": 1772940885.0489526,
+  "preferred_interaction_style": "balanced",
+  "sensitivity_to_emotion": true,
+  "reminder_tolerance": "medium",
+  "humor_preference": true,
+  "preferred_topics": [],
+  "typical_arrival_hour": null,
+  "typical_departure_hour": null,
+  "primary_use_location": "desk",
+  "average_session_duration_minutes": 0.0,
+  "most_common_emotion": "neutral",
+  "most_common_activity": "idle",
+  "action_weights": {
+    "greet": 0.8,
+    "comment": 0.5,
+    "reminder": 0.5,
+    "question": 0.4,
+    "reaction": 0.7
+  },
+  "positive_interactions": 0,
+  "negative_interactions": 0,
+  "last_interaction_ts": null
+}

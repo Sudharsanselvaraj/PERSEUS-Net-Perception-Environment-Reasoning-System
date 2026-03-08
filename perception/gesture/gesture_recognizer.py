@@ -56,8 +56,23 @@ class GestureRecognizer:
     def initialize(self) -> None:
         try:
             import mediapipe as mp
-            self._mp_hands = mp.solutions.hands
-            self._mp_pose = mp.solutions.pose
+
+            # Handle different MediaPipe versions
+            try:
+                # MediaPipe 0.9.x and earlier
+                self._mp_hands = mp.solutions.hands
+                self._mp_pose = mp.solutions.pose
+            except AttributeError:
+                # MediaPipe 0.10.x+ - use the new API
+                import mediapipe.tasks.python as mp_tasks
+                from mediapipe import tasks
+                # For newer MediaPipe, we'll use a different approach
+                # Since the API changed significantly, we'll gracefully degrade
+                logger.warning("MediaPipe 0.10+ detected - gesture recognition disabled")
+                self._initialized = False
+                self._hands = None
+                self._pose = None
+                return
 
             self._hands = self._mp_hands.Hands(
                 static_image_mode=False,
@@ -76,7 +91,10 @@ class GestureRecognizer:
             logger.info("GestureRecognizer initialized (MediaPipe Hands + Pose)")
         except Exception as e:
             logger.error(f"Failed to initialize GestureRecognizer: {e}")
-            raise
+            # Graceful degradation
+            self._initialized = False
+            self._hands = None
+            self._pose = None
 
     # ── Main Interface ────────────────────────────────────────
 
@@ -85,8 +103,16 @@ class GestureRecognizer:
         """
         Process an RGB frame and return gesture + orientation result.
         """
-        if not self._initialized:
-            raise RuntimeError("GestureRecognizer not initialized.")
+        if not self._initialized or self._hands is None or self._pose is None:
+            # Graceful degradation - return empty result
+            return GestureResult(
+                gesture_name="none",
+                confidence=0.0,
+                is_waving=False,
+                body_orientation="unknown",
+                hand_detected=False,
+                pose_detected=False,
+            )
 
         hand_results = self._hands.process(rgb_frame)
         pose_results = self._pose.process(rgb_frame)

@@ -17,7 +17,7 @@ camera:
   width: 1280
   height: 720
   fps: 30
-  backend: "v4l2"              # v4l2 | dshow (Windows) | avfoundation (macOS)
+  backend: "dshow"        # ← change from "v4l2" to "dshow"
   buffer_size: 1
   codec: "MJPG"
 
@@ -71,7 +71,7 @@ objects:
 
 # ── Scene Understanding (VLM) ─────────────────────────────────
 scene:
-  enabled: true
+  enabled: false
   model_name: "Qwen/Qwen-VL-Chat"   # or "llava-hf/llava-1.5-7b-hf"
   device: "auto"
   max_new_tokens: 256
